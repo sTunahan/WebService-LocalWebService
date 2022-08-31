@@ -1,0 +1,117 @@
+
+
+kULLANILAN TEKNOLOJILER
+
+        1. mvvm
+        2.API-JSON
+        3.LocalService - And WebService
+        
+        
+STEPS
+
+step 1. Ilk basta modelimizi oluşturarak Webservice mizi yazacagız.MODEL klasörü ıcerısıne  model swift dosyası olusturcaz  "UserModel"
+
+
+
+step 2. "UserModel" dosyamıza gelıyoruz.Burada kodları yazmamız gerekıyor bunun için "JSON" ımızı kopyalayıp "quicktype" sitesine yapıştırıyoruz buda bize hazır model tasarımını veriyor..
+
+step 3.  "Webservice" dosyamıza geliyoruz.Standart bir webservice yazıyoruz.Daha oncekılerde kullandıgımız sekılde, Websercie Class'ı oluştururuz ve  donwload() methodunu oluştururuz.
+
+
+step 4. Şimdi "ViewModel" kısmına gidiyoruz. "UserViewModel" swift dosyası oluşturuyoruz."struct UserViewMode" ve "class UserListViewModel : ObservableObject" oluşturuyoruz."Webservice" nesnemizi oluşturup "donwloadUsers()" fonksıyonumuzu oluştururuz.
+
+step 5. "UserViewModel" de veya herhangı baska bır yerde "Constants" ları tutmak ıcın klasör olusturulur. Değişkenlerime her yerden ulaşılabilsin diye "static" tag ını kullandık
+
+step 6. "ContentView" a gelip alınan veriyi gösterelim,
+
+step 7. Çalıştırıp test edıyoruz kodumuz çalışıyor.BURAYA KADAR OLAN KISIMI daha once yapmıştık zaten
+
+
+step 8 . LOCAL SERVİCE YAZMAK
+
+step 9. Şimdi json dosyamızı proje ıcıne dosya seklınde koymamız gerekıyor. Bir tane dosya oluşturalım  Uzantısı .json olcak ---> Nasıl oluşturacagız ?  terminale gidip cd desktop + touch users.json  yaptıgımızda bızım ıcın bı json dosyası olusturuyor.Bunun ıcıne Json'ımızı yapıştırıyoruz. Sonra bunu Projemizin içerisine  atıyoruz.
+
+
+step 10. Service klasörüne geliyoruz.. "Localservice" dosyasını oluşturuyoruz.
+
+NOT: LocalService ve WebService deki func degısken ısımlerı aynı neden aynı cunku bıze kolaylık saglansın dıye , Asıl iş "UserViewModel" kısmında biz "service" nesnemizi oluştururken web de
+
+                        let webservice = Webservice()
+                        
+    şeklinde oluşturmuştuk buraya " Localservice () " yazarsak local nesnesi oluşturur Her defasında  nesnenin tipini değiştirmek Çok mantıklı bir durum değil . ASIL OLAYA GELIYORUZ.
+    
+    
+step 11. O yüzden Jenerik birşey yapacagız. burada Webservice mi Localservice mi verdiğimiz farketmesin işte bunun cevabı PROTOCOLLERDE yatıyor
+
+step 12.  "Service" klasörümüze gelip  "NetworkService" swift dosyası oluşturuyoruz. Bu bizim protocolümüz olcak hem localservice imiz hemde webservice miz bu "networkService" imize uyum sağlıyacak
+    
+    
+step 13:   "NetworkService" adında protocol'ümüzü oluşturdu , Webservice ve LocalWebservice de birebir aynı ismi kullanmamızın sebebi buydu
+    
+step 14. Şimdi "WebService" ve "LocalService" dosyalarımda Class'larıma bu Protocolü eklıyorum
+
+            class Webservice : NetworkService{
+            
+            
+            class Localservice : NetworkService{
+            
+            
+step 15. Artık "ViewModel" dosyamda  oluşturmuş oldugum "Nesneyi" değiştiriyorum
+
+                let webservice = Webservice()   kodu sildik
+                
+                ---------
+                    private var service : NetworkService
+    
+                    init (service: NetworkService) {
+                        self.service = service
+                    }
+                    
+                    func donwloadUsers() async {
+                        do {
+                            let users = try await service.download(Constants.Urls.usersExtension)
+                 
+Yukarıdaki kodları ekledık artık TEK DEĞİŞTİRMEM GEREKEN SERVİCELER ARASI GECIS YAPARKEN   BİZDEN HANGİ SERVİCE KULLANCAGIMIZI ISTIYECEK
+
+step 16.  "ContentView" a gelip init methodunda biz "userListViewModel" nesnesi oluştururken kullanmak istedigimiz service gircez.
+
+                    init () {
+                            self.userListViewModel = UserListViewModel(service: Localservice())
+                        }
+
+step 17. SON OLARAK  "Contants" kısmına bir  struct daha olusturmamı gerekıyor çünkü "UserViewModel" kısmıda bulunan
+
+                                let users = try await service.download(Constants.Urls.usersExtension)
+                                
+    kodumuzda   "Constants.Urls." DEĞİŞKENİMİze gidiyor bunuda  değiştirmemiz gerekiyor.
+    
+    
+step 18. Constants dosyamızda "struct Paths" sabıtımızı olustururuz.
+    
+    
+step 19.  "NetworkService" dosyamızda  "type" değiskenini oluştururuz.
+    
+step 20 . Webservice dosyamıza gelıyoruz. Protocol oldugu ıcın bu degıskenımızı eklememız gerekıyor . Aynı şekilde Localservice kısmındada uygulamamız gerekıyor.
+    
+    
+step 21. "UserViewModel" kısmına gelerek   donwloadUsers() methodu içerisinde  if şartı oluşturarak hangi url service yi kullanacagımızı söyleriz
+
+
+                            var resource = ""
+                            
+                            if service.type == "Webservice" {
+                                resource = Constants.Urls.usersExtension
+                            }else {
+                                resource = Constants.Paths.baseUrl
+                            }
+                            do {
+                                let users = try await service.download(resource)
+                                DispatchQueue.main.async {
+
+
+methodumuzu güncelleriz  ve yukarıdaki halını alır
+
+
+KODUMUZU ÇALIŞTIRIYORUZ . HER İKİ SERVİCE DE ÇALIŞTIGINI  "CONTENTvİEW" DA BULUNAN İNİT METHODU ICERISINDE SERVİCE KISMINI DEGISTIREREK CALISTIRIRIZ.
+
+                    self.userListViewModel = UserListViewModel(service: Localservice())
